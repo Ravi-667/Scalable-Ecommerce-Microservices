@@ -1,5 +1,5 @@
 import React from 'react'
-import { cart, orders } from '../services/api'
+import { cart, orders, payments } from '../services/api'
 
 export default function Checkout() {
   const [c, setC] = React.useState({ items: [] })
@@ -13,7 +13,14 @@ export default function Checkout() {
     setLoading(true)
     try {
       const ord = await orders.place()
-      setMessage('Order placed — ID: ' + (ord._id || ord.id))
+      const oid = ord._id || ord.id || ord.orderId
+      // attempt payment
+      try {
+        const pay = await payments.pay(oid)
+        setMessage('Order placed — ID: ' + oid + ' — Payment: ' + (pay?.status || pay?.payment?.status || 'unknown'))
+      } catch (pe) {
+        setMessage('Order placed — ID: ' + oid + ' — Payment failed')
+      }
       setC({ items: [] })
     } catch (err) {
       setMessage(err?.body?.error || 'Failed to place order')

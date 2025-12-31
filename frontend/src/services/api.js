@@ -153,6 +153,17 @@ export const orders = {
   list: () => authFetch('/orders'),
 };
 
+export const payments = {
+  pay: async (orderId) => {
+    if (USE_MOCKS) {
+      // simulate a payment success
+      return { payment: { method: 'stub', status: 'succeeded', processedAt: new Date().toISOString(), amount: 0 }, orderId, status: 'paid' };
+    }
+    return authFetch('/payments/pay', { method: 'POST', body: { orderId } });
+  },
+  getForOrder: (orderId) => authFetch(`/payments/order/${orderId}`),
+};
+
 export const reviews = {
   listForProduct: async (productId) => {
     if (USE_MOCKS) {
