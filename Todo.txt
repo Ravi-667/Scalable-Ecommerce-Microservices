@@ -31,7 +31,8 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 5) Product catalog
  - What: Product model and CRUD endpoints
  - Files: backend/src/models/Product.js, backend/src/routes/products.js
- - Commit message: "feat(products): add product model and CRUD endpoints"
+ - Created files: `backend/src/models/Product.js`, `backend/src/routes/products.js` and updated `backend/src/app.js`
+ - Suggested commit message: "feat(products): add Product model and CRUD endpoints"
 
 6) Shopping cart
  - What: Cart model/endpoints (per-user cart), add/remove/update
