@@ -37,7 +37,8 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 6) Shopping cart
  - What: Cart model/endpoints (per-user cart), add/remove/update
  - Files: backend/src/models/Cart.js, backend/src/routes/cart.js
- - Commit message: "feat(cart): implement shopping cart APIs"
+ - Created files: `backend/src/models/Cart.js`, `backend/src/routes/cart.js` and updated `backend/src/app.js`
+ - Suggested commit message: "feat(cart): add Cart model and shopping cart APIs (add/remove/update/clear)"
 
 7) Order service
  - What: Place orders, order history, status updates
