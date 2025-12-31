@@ -1,0 +1,96 @@
+Scalable E-Commerce Microservices - Implementation TODO
+
+Priority: Full-stack app (frontend + backend)
+Tech stack: Node.js, Express, MongoDB (Mongoose), React
+
+Steps (execute in order). For each step I'll implement files locally; you will manually add & commit to GitHub with the message shown.
+
+1) Project scaffold
+ - What: Create repo layout: backend/, frontend/, README.md, .gitignore
+ - Files to add: README.md, .gitignore, backend/package.json, frontend/package.json
+ - Commit message: "chore: scaffold project directories and root files"
+
+2) Backend template
+ - What: Minimal Express server, basic routes, Dockerfile, env example
+ - Files: backend/index.js, backend/src/app.js, backend/Dockerfile, backend/.env.example
+ - Commit message: "feat(backend): add express server template and Dockerfile"
+
+3) MongoDB setup
+ - What: Add Mongoose connection and root docker-compose.yml with mongo service
+ - Files: backend/src/db.js, docker-compose.yml
+ - Commit message: "chore(backend): add mongoose connection and docker-compose for mongo"
+
+4) User service (Auth)
+ - What: User model, registration, login, JWT auth middleware
+ - Files: backend/src/models/User.js, backend/src/routes/auth.js, backend/src/middleware/auth.js
+ - Commit message: "feat(auth): implement user model and JWT authentication"
+
+5) Product catalog
+ - What: Product model and CRUD endpoints
+ - Files: backend/src/models/Product.js, backend/src/routes/products.js
+ - Commit message: "feat(products): add product model and CRUD endpoints"
+
+6) Shopping cart
+ - What: Cart model/endpoints (per-user cart), add/remove/update
+ - Files: backend/src/models/Cart.js, backend/src/routes/cart.js
+ - Commit message: "feat(cart): implement shopping cart APIs"
+
+7) Order service
+ - What: Place orders, order history, status updates
+ - Files: backend/src/models/Order.js, backend/src/routes/orders.js
+ - Commit message: "feat(orders): add order processing and history"
+
+8) Payment stub
+ - What: Simulated payment endpoint (later integrate Stripe/PayPal)
+ - Files: backend/src/routes/payments.js
+ - Commit message: "feat(payments): add payment stub endpoint"
+
+9) Notification stub
+ - What: Simple email/SMS notification helper (stubbed)
+ - Files: backend/src/utils/notification.js
+ - Commit message: "feat(notification): add notification helper (stub)"
+
+10) API gateway & CORS
+ - What: Add CORS, proxy config or nginx in compose
+ - Files: docker-compose.yml (update), nginx/default.conf (optional)
+ - Commit message: "chore(infra): add gateway/proxy and CORS config"
+
+11) Frontend scaffold
+ - What: Create React app (Vite/CRA), basic routing
+ - Files: frontend/package.json, frontend/src/main.jsx, frontend/src/App.jsx
+ - Commit message: "feat(frontend): scaffold React app"
+
+12) Frontend auth & flows
+ - What: Implement signup/login, product list, cart UI, checkout
+ - Files: frontend/src/pages/*, frontend/src/services/api.js
+ - Commit message: "feat(frontend): add auth, product listing and cart UI"
+
+13) Integration & Compose
+ - What: Wire services with docker-compose, networks, env files
+ - Files: docker-compose.yml (update), .env (example)
+ - Commit message: "chore: wire frontend and backend in docker-compose"
+
+14) Tests
+ - What: Add Jest tests for backend and basic frontend tests
+ - Files: backend/jest.config.js, backend/src/__tests__/*, frontend/src/__tests__/*
+ - Commit message: "test: add unit tests for backend and frontend"
+
+15) CI/CD pipeline
+ - What: GitHub Actions to lint, test, build images
+ - Files: .github/workflows/ci.yml
+ - Commit message: "ci: add GitHub Actions workflow for CI"
+
+16) Monitoring & logging
+ - What: Add logging (winston) and metrics endpoints
+ - Files: backend/src/utils/logger.js, backend/src/metrics.js
+ - Commit message: "chore(monitoring): add basic logging and metrics"
+
+17) Polish & docs
+ - What: API docs, README usage, deployment notes
+ - Files: README.md, docs/openapi.yaml
+ - Commit message: "docs: add API docs and usage instructions"
+
+---
+Notes:
+ - I will implement each step in sequence if you give permission. After I implement a step I will tell you which files were added/modified and the suggested commit message so you can commit manually.
+ - Do you grant permission for me to begin implementing step 1 (Project scaffold)?
