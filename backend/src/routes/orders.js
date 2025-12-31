@@ -1,8 +1,11 @@
 const express = require('express');
+const axios = require('axios');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
+
+const MOCKAPI_BASE = process.env.MOCKAPI_BASE || process.env.MOCKAPI_URL || '';
 
 const router = express.Router();
 
@@ -28,6 +31,25 @@ router.post('/', auth, async (req, res) => {
 
     // Clear cart after order
     await Cart.findOneAndUpdate({ user: userId }, { items: [] });
+
+    // Optionally forward order to external MockAPI (non-blocking)
+    if (MOCKAPI_BASE) {
+      (async () => {
+        try {
+          await axios.post(`${MOCKAPI_BASE.replace(/\/$/, '')}/orders`, {
+            orderId: order._id,
+            user: userId,
+            items,
+            total,
+            currency: cart.currency,
+            status: order.status,
+            createdAt: order.createdAt,
+          }, { timeout: 5000 });
+        } catch (e) {
+          console.warn('MockAPI order forward failed:', e.message);
+        }
+      })();
+    }
 
     await order.populate('items.product');
     res.status(201).json(order);
