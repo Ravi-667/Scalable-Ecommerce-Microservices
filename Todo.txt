@@ -10,10 +10,10 @@ Steps (execute in order). For each step I'll implement files locally; you will m
  - Created files: README.md, .gitignore, backend/package.json, backend/index.js, frontend/package.json, frontend/index.html, frontend/src/main.jsx, frontend/src/App.jsx
  - Suggested commit message: "chore: scaffold project directories and root files"
 
-2) Backend template
- - What: Minimal Express server, basic routes, Dockerfile, env example
- - Files: backend/index.js, backend/src/app.js, backend/Dockerfile, backend/.env.example
- - Commit message: "feat(backend): add express server template and Dockerfile"
+2) Backend template (completed)
+ - What: Minimal Express app structure, middleware, health route, Dockerfile, env example
+ - Created files: `backend/src/app.js`, `backend/src/routes/health.js`, `backend/Dockerfile`, `backend/.env.example`, `backend/.dockerignore`, updated `backend/package.json`, updated `backend/index.js`
+ - Suggested commit message: "feat(backend): add express app template, health route and Dockerfile"
 
 3) MongoDB setup
  - What: Add Mongoose connection and root docker-compose.yml with mongo service

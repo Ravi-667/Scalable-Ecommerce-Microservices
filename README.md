@@ -13,4 +13,3 @@ Local dev (after services are implemented):
 3. From `frontend/` run `npm install` and `npm run dev`
 
 Suggested commits are listed in `Todo.txt` for each step.
-# Scalable-Ecommerce-Microservices
