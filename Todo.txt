@@ -24,6 +24,7 @@ Steps (execute in order). For each step I'll implement files locally; you will m
  - What: User model, registration, login, JWT auth middleware
  - Files: backend/src/models/User.js, backend/src/routes/auth.js, backend/src/middleware/auth.js
  - Commit message: "feat(auth): implement user model and JWT authentication"
+	- Notes: Keep secrets out of the repo. Add your Atlas URI to a local `.env` (gitignored) and set `MONGO_URI` there before starting the backend. Do NOT paste credentials into tracked files.
 
 5) Product catalog
  - What: Product model and CRUD endpoints
