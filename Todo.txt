@@ -43,8 +43,7 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 7) Order service
  - What: Place orders, order history, status updates
  - Files: backend/src/models/Order.js, backend/src/routes/orders.js
- - Created files: `backend/src/models/Order.js`, `backend/src/routes/orders.js` and updated `backend/src/app.js`
- - Suggested commit message: "feat(orders): add order processing, idempotency and order history"
+ - Commit message: "feat(orders): add order processing and history"
 
 8) Payment stub
  - What: Simulated payment endpoint (later integrate Stripe/PayPal)
@@ -100,3 +99,33 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 Notes:
  - I will implement each step in sequence if you give permission. After I implement a step I will tell you which files were added/modified and the suggested commit message so you can commit manually.
  - Do you grant permission for me to begin implementing step 1 (Project scaffold)?
+
+Priority update: Backend-first
+- Focus: Complete backend core features (Orders, Payment stub, Notification stub) and integration with public mock services before finishing the remaining frontend work.
+
+Services (public mock mapping to use from frontend when `VITE_USE_MOCKS=true`):
+- User Service (Auth): https://jsonplaceholder.typicode.com/users
+- Product Catalog Service: https://fakestoreapi.com/products
+- Shopping Cart Service: https://dummyjson.com/carts
+- Order Service: https://mockapi.io (use your MockAPI base URL)
+- Review / Rating Service: https://jsonplaceholder.typicode.com/comments
+- Payment Service: Internal stub only (no external API) — simulate processing
+- Notification Service: Internal stub only (email/SMS simulation)
+
+Next actions (backend-first):
+7) Order service (implement now)
+ - What: `backend/src/models/Order.js`, `backend/src/routes/orders.js` — create orders, list, idempotency, and link to cart
+ - Suggested commit message: "feat(orders): implement order processing, persistence and endpoints"
+
+8) Payment stub (implement now)
+ - What: `backend/src/routes/payments.js` — internal endpoint to simulate success/failure and webhook-like callbacks
+ - Suggested commit message: "feat(payments): add internal payment stub endpoint"
+
+9) Notification stub (implement now)
+ - What: `backend/src/utils/notification.js` — simple send function that logs/queues simulated emails/SMS
+ - Suggested commit message: "feat(notification): add internal notification stub"
+
+After those are implemented and tested, proceed to complete frontend integration and UI tests.
+
+Suggested commit message for this todo update:
+"chore(todo): prioritize backend work (orders, payment stub, notifications) and add public mock services mapping"
