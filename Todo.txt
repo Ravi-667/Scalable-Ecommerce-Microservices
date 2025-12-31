@@ -43,7 +43,8 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 7) Order service
  - What: Place orders, order history, status updates
  - Files: backend/src/models/Order.js, backend/src/routes/orders.js
- - Commit message: "feat(orders): add order processing and history"
+ - Created files: `backend/src/models/Order.js`, `backend/src/routes/orders.js` and updated `backend/src/app.js`
+ - Suggested commit message: "feat(orders): add order processing, idempotency and order history"
 
 8) Payment stub
  - What: Simulated payment endpoint (later integrate Stripe/PayPal)
