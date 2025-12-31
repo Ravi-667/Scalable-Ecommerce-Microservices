@@ -5,10 +5,10 @@ Tech stack: Node.js, Express, MongoDB (Mongoose), React
 
 Steps (execute in order). For each step I'll implement files locally; you will manually add & commit to GitHub with the message shown.
 
-1) Project scaffold
+1) Project scaffold (completed)
  - What: Create repo layout: backend/, frontend/, README.md, .gitignore
- - Files to add: README.md, .gitignore, backend/package.json, frontend/package.json
- - Commit message: "chore: scaffold project directories and root files"
+ - Created files: README.md, .gitignore, backend/package.json, backend/index.js, frontend/package.json, frontend/index.html, frontend/src/main.jsx, frontend/src/App.jsx
+ - Suggested commit message: "chore: scaffold project directories and root files"
 
 2) Backend template
  - What: Minimal Express server, basic routes, Dockerfile, env example
