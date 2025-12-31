@@ -15,10 +15,10 @@ Steps (execute in order). For each step I'll implement files locally; you will m
  - Created files: `backend/src/app.js`, `backend/src/routes/health.js`, `backend/Dockerfile`, `backend/.env.example`, `backend/.dockerignore`, updated `backend/package.json`, updated `backend/index.js`
  - Suggested commit message: "feat(backend): add express app template, health route and Dockerfile"
 
-3) MongoDB setup
+3) MongoDB setup (completed)
  - What: Add Mongoose connection and root docker-compose.yml with mongo service
- - Files: backend/src/db.js, docker-compose.yml
- - Commit message: "chore(backend): add mongoose connection and docker-compose for mongo"
+ - Created files: `backend/src/db.js`, `docker-compose.yml` and updated `backend/package.json`, `backend/index.js`
+ - Suggested commit message: "chore(backend): add mongoose connection and docker-compose for mongo"
 
 4) User service (Auth)
  - What: User model, registration, login, JWT auth middleware
