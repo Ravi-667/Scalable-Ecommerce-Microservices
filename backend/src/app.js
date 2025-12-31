@@ -5,6 +5,7 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const healthRouter = require('./routes/health');
+const authRouter = require('./routes/auth');
 
 const app = express();
 
@@ -14,5 +15,6 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 app.use('/api', healthRouter);
+app.use('/api/auth', authRouter);
 
 module.exports = app;

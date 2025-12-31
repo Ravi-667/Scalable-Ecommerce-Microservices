@@ -23,7 +23,9 @@ Steps (execute in order). For each step I'll implement files locally; you will m
 4) User service (Auth)
  - What: User model, registration, login, JWT auth middleware
  - Files: backend/src/models/User.js, backend/src/routes/auth.js, backend/src/middleware/auth.js
- - Commit message: "feat(auth): implement user model and JWT authentication"
+ - Created files: `backend/src/models/User.js`, `backend/src/routes/auth.js`, `backend/src/middleware/auth.js` and updated `backend/src/app.js`, `backend/package.json`
+ - Suggested commit message: "feat(auth): add User model, auth routes and JWT middleware"
+ - Run notes: install deps in `backend/` (run `npm install`) and create `backend/.env` with `MONGO_URI` and `JWT_SECRET` before starting the server.
 	- Notes: Keep secrets out of the repo. Add your Atlas URI to a local `.env` (gitignored) and set `MONGO_URI` there before starting the backend. Do NOT paste credentials into tracked files.
 
 5) Product catalog
