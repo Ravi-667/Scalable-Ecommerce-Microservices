@@ -7,6 +7,9 @@ A modern, full-stack e-commerce platform built with microservices architecture.
 ![React](https://img.shields.io/badge/React-18-blue.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-7-green.svg)
 
+> **Live Demo:** [https://scalable-ecommerce-microservices.vercel.app](https://scalable-ecommerce-microservices.vercel.app)
+> **Live Backend API:** [https://microstore-backend-service.onrender.com](https://microstore-backend-service.onrender.com)
+
 ## 🛍️ Features
 
 ### Customer Facing
