@@ -1,6 +1,7 @@
 const express = require('express');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
+const requireAdmin = require('../middleware/requireAdmin');
 
 const router = express.Router();
 
@@ -42,11 +43,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create product (protected)
-router.post('/', auth, async (req, res) => {
+// Create product (admin only)
+router.post('/', auth, requireAdmin, async (req, res) => {
   try {
-    const payload = req.body;
-    const p = new Product(payload);
+    const { title, price, description, currency, images, sku, inventory } = req.body;
+    
+    // Input validation
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (price === undefined || typeof price !== 'number' || price < 0) {
+      return res.status(400).json({ error: 'Valid price is required' });
+    }
+    
+    const p = new Product({
+      title: title.trim(),
+      description: description?.trim() || '',
+      price,
+      currency: currency || 'USD',
+      images: Array.isArray(images) ? images : [],
+      sku: sku?.trim() || '',
+      inventory: inventory || 0,
+    });
     await p.save();
     res.status(201).json(p);
   } catch (err) {
@@ -55,10 +73,19 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Update product (protected)
-router.put('/:id', auth, async (req, res) => {
+// Update product (admin only)
+router.put('/:id', auth, requireAdmin, async (req, res) => {
   try {
-    const p = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Only allow specific fields to be updated
+    const allowedFields = ['title', 'description', 'price', 'currency', 'images', 'sku', 'inventory'];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+    
+    const p = await Product.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!p) return res.status(404).json({ error: 'Product not found' });
     res.json(p);
   } catch (err) {
@@ -67,8 +94,8 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// Delete product (protected)
-router.delete('/:id', auth, async (req, res) => {
+// Delete product (admin only)
+router.delete('/:id', auth, requireAdmin, async (req, res) => {
   try {
     const p = await Product.findByIdAndDelete(req.params.id);
     if (!p) return res.status(404).json({ error: 'Product not found' });

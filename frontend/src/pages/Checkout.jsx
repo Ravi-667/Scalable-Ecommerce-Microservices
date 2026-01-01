@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { orders, payments, cart, getToken } from '../services/api';
+import { useAuth } from '@clerk/clerk-react';
+import { orders, payments, cart } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function Checkout() {
+  const { isSignedIn, isLoaded } = useAuth();
   const [cartData, setCartData] = useState({ items: [] });
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
@@ -15,8 +17,10 @@ export default function Checkout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!getToken()) {
-      navigate('/login');
+    if (!isLoaded) return;
+    
+    if (!isSignedIn) {
+      navigate('/sign-in');
       return;
     }
 
@@ -24,7 +28,7 @@ export default function Checkout() {
       .then((r) => setCartData(r || { items: [] }))
       .catch(() => setCartData({ items: [] }))
       .finally(() => setLoading(false));
-  }, [navigate]);
+  }, [isLoaded, isSignedIn, navigate]);
 
   const total = cartData.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
 

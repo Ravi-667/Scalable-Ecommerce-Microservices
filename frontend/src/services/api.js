@@ -2,19 +2,20 @@
  * API Service - Frontend API Communication
  * 
  * This module handles all API calls.
+ * Authentication is now handled by Clerk - tokens are managed externally.
  * 
  * MODE: MOCK SERVICES ENABLED
  * Using public APIs as data sources:
  * - Products: https://fakestoreapi.com
- * - Carts: https://dummyjson.com
- * - Users: https://jsonplaceholder.typicode.com
+ * - Carts: localStorage (persistent)
+ * - Users: Clerk Authentication
  * - Reviews: https://jsonplaceholder.typicode.com
  */
 
 const API_BASE = import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api';
 
-// MOCK MODE: Set to true to use public mock APIs instead of backend
-const USE_MOCKS = true; // Enabled for development with mock services
+// MOCK MODE: Defaults to true in development, set VITE_USE_MOCKS=false to use real backend
+const USE_MOCKS = import.meta?.env?.VITE_USE_MOCKS !== 'false';
 
 // Mock service base URLs
 const SERVICES = {
@@ -24,35 +25,77 @@ const SERVICES = {
   reviews: 'https://jsonplaceholder.typicode.com',
 };
 
-// ============ Token Management ============
+// ============ Clerk Token Integration ============
+// Note: Token management is now handled by Clerk
+// Use useAuth().getToken() in components that need the token
 
-export function setToken(token) {
-  localStorage.setItem('token', token);
+// Legacy compatibility functions - now Clerk manages auth state
+export function getToken() {
+  // Clerk manages tokens - this is kept for backward compatibility
+  // Components should use useAuth() hook instead
+  return localStorage.getItem('clerk-token-cache');
 }
 
-export function getToken() {
-  return localStorage.getItem('token');
+export function setToken(token) {
+  // Clerk manages tokens automatically
+  localStorage.setItem('clerk-token-cache', token);
 }
 
 export function clearToken() {
-  localStorage.removeItem('token');
+  localStorage.removeItem('clerk-token-cache');
 }
 
 export function logout() {
   clearToken();
-  localStorage.removeItem('mockUser');
-  window.location.href = '/login';
+  localStorage.removeItem('mockCart');
+  localStorage.removeItem('mockOrders');
+  // Note: Use Clerk's signOut() in components instead
+  window.location.href = '/sign-in';
 }
 
-// Get current mock user from localStorage
-function getMockUser() {
-  try {
-    const user = localStorage.getItem('mockUser');
-    return user ? JSON.parse(user) : null;
-  } catch {
-    return null;
+// ============ Auth Service ============
+// For backward compatibility - use Clerk hooks in components when possible
+
+export const auth = {
+  getMe: async (token) => {
+    if (USE_MOCKS) {
+      // Return mock user data - in real app this would come from Clerk
+      return { user: { name: 'Mock User', email: 'user@example.com', createdAt: new Date().toISOString() } };
+    }
+    return authFetch('/auth/me', { token });
+  },
+  
+  login: async (email, password) => {
+    if (USE_MOCKS) {
+      // Mock login - store token in localStorage
+      const mockToken = 'mock_token_' + Date.now();
+      setToken(mockToken);
+      return { token: mockToken, user: { name: 'Mock User', email } };
+    }
+    const result = await request('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (result.token) setToken(result.token);
+    return result;
+  },
+  
+  register: async (name, email, password) => {
+    if (USE_MOCKS) {
+      const mockToken = 'mock_token_' + Date.now();
+      setToken(mockToken);
+      return { token: mockToken, user: { name, email } };
+    }
+    const result = await request('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    if (result.token) setToken(result.token);
+    return result;
   }
-}
+};
 
 // ============ Core Request Functions ============
 
@@ -69,75 +112,11 @@ async function request(path, options = {}) {
   }
 }
 
-export function authFetch(path, { method = 'GET', body } = {}) {
-  const token = getToken();
+export function authFetch(path, { method = 'GET', body, token } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   return request(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
 }
-
-// ============ Auth Service ============
-
-export const auth = {
-  register: async (payload) => {
-    if (USE_MOCKS) {
-      // Create a mock user and store in localStorage
-      const user = { 
-        _id: `user_${Date.now()}`, 
-        name: payload.name, 
-        email: payload.email,
-        createdAt: new Date().toISOString()
-      };
-      const token = btoa(JSON.stringify({ id: user._id, email: user.email }));
-      localStorage.setItem('mockUser', JSON.stringify(user));
-      return { token, user };
-    }
-    return request('/auth/register', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(payload) 
-    });
-  },
-
-  login: async (payload) => {
-    if (USE_MOCKS) {
-      // Fetch users from JSONPlaceholder and find matching email
-      try {
-        const res = await fetch(`${SERVICES.users}/users`);
-        const users = await res.json();
-        const found = users.find(u => u.email.toLowerCase() === payload.email.toLowerCase());
-        
-        const user = found 
-          ? { _id: `user_${found.id}`, name: found.name, email: found.email, createdAt: new Date().toISOString() }
-          : { _id: `user_${Date.now()}`, name: payload.email.split('@')[0], email: payload.email, createdAt: new Date().toISOString() };
-        
-        const token = btoa(JSON.stringify({ id: user._id, email: user.email }));
-        localStorage.setItem('mockUser', JSON.stringify(user));
-        return { token, user };
-      } catch {
-        // Fallback if JSONPlaceholder fails
-        const user = { _id: `user_${Date.now()}`, name: payload.email.split('@')[0], email: payload.email, createdAt: new Date().toISOString() };
-        const token = btoa(JSON.stringify({ id: user._id, email: user.email }));
-        localStorage.setItem('mockUser', JSON.stringify(user));
-        return { token, user };
-      }
-    }
-    return request('/auth/login', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(payload) 
-    });
-  },
-
-  getMe: async () => {
-    if (USE_MOCKS) {
-      const user = getMockUser();
-      if (!user) throw { status: 401, body: { error: 'Not authenticated' } };
-      return { user };
-    }
-    return authFetch('/auth/me');
-  },
-};
 
 // ============ Product Service (FakeStoreAPI) ============
 

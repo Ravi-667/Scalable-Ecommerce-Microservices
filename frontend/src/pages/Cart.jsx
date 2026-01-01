@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cart, getToken } from '../services/api';
+import { useAuth } from '@clerk/clerk-react';
+import { cart } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function Cart() {
+  const { isSignedIn, isLoaded } = useAuth();
   const [cartData, setCartData] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
@@ -18,13 +20,15 @@ export default function Cart() {
   };
 
   useEffect(() => {
-    if (!getToken()) {
+    if (!isLoaded) return;
+    
+    if (!isSignedIn) {
       // Still show cart page, but it will be empty for non-logged in users
       setLoading(false);
       return;
     }
     load();
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   const handleRemove = async (itemId) => {
     setRemoving(itemId);

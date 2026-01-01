@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
+const requireAdmin = require('../middleware/requireAdmin');
 
 const MOCKAPI_BASE = process.env.MOCKAPI_BASE || process.env.MOCKAPI_URL || '';
 
@@ -83,14 +84,21 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// Update order status (simple endpoint — in real app restrict to admin)
-router.put('/:id/status', auth, async (req, res) => {
+// Update order status (admin only)
+router.put('/:id/status', auth, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
+    if (!status) return res.status(400).json({ error: 'Status is required' });
+    
+    const validStatuses = ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+    
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    if (String(order.user) !== String(req.user.id)) return res.status(403).json({ error: 'Forbidden' });
-    order.status = status || order.status;
+    
+    order.status = status;
     await order.save();
     await order.populate('items.product');
     res.json(order);

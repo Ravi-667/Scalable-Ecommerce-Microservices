@@ -1,46 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, orders, logout, getToken } from '../services/api';
+import { useUser, useAuth, useClerk } from '@clerk/clerk-react';
+import { orders } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
+  const { user, isLoaded: userLoaded } = useUser();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { signOut } = useClerk();
   const [userOrders, setUserOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!getToken()) {
-      navigate('/login');
+    if (!authLoaded) return;
+    
+    if (!isSignedIn) {
+      navigate('/sign-in');
       return;
     }
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [userRes, ordersRes] = await Promise.all([
-          auth.getMe(),
-          orders.list()
-        ]);
-        setUser(userRes.user);
+        const ordersRes = await orders.list();
         setUserOrders(ordersRes.items || []);
       } catch (err) {
-        if (err.status === 401) {
-          logout();
-        } else {
-          setError('Failed to load profile data');
-        }
+        setError('Failed to load order history');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [navigate]);
+  }, [authLoaded, isSignedIn, navigate]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/sign-in');
   };
 
   const getStatusColor = (status) => {
@@ -99,10 +97,10 @@ export default function Profile() {
         </h3>
         <div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
           <div>
-            <span style={{ fontWeight: 600 }}>Name:</span> {user?.name || 'N/A'}
+            <span style={{ fontWeight: 600 }}>Name:</span> {user?.fullName || user?.firstName || 'N/A'}
           </div>
           <div>
-            <span style={{ fontWeight: 600 }}>Email:</span> {user?.email || 'N/A'}
+            <span style={{ fontWeight: 600 }}>Email:</span> {user?.emailAddresses?.[0]?.emailAddress || 'N/A'}
           </div>
           <div>
             <span style={{ fontWeight: 600 }}>Member since:</span> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}

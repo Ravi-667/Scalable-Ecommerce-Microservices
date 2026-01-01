@@ -8,4 +8,6 @@ export default defineConfig({
     port: 5173,
     open: true
   }
+  // Note: VITE_CLERK_PUBLISHABLE_KEY should be set in .env.local file
+  // Do not hardcode API keys in config files
 });
