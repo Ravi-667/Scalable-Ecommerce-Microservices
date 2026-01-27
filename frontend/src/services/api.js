@@ -11,7 +11,9 @@
 
 import { getClerkToken } from './clerkToken';
 
-const API_BASE = import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api';
+// Hardcoded Backend URL to bypass Vercel environment variable loading issues
+const API_BASE = 'https://microstore-backend-service.onrender.com/api';
+// Was: import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api';
 
 // TEMPORARY FIX: Hardcode to false since .env.local is not being read by Vite
 // TODO: Fix environment variable loading issue
