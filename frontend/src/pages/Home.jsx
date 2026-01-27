@@ -11,11 +11,11 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [isPersonalized, setIsPersonalized] = useState(false);
 
-  // Check if user has order history
-  const hasOrderHistory = () => {
+  // Check if user has order history (Async)
+  const hasOrderHistory = async () => {
     try {
-      const orders = JSON.parse(localStorage.getItem('mockOrders') || '[]');
-      return orders.length > 0;
+      const { items } = await orders.list(); // Fetch from Backend
+      return items && items.length > 0;
     } catch {
       return false;
     }
@@ -23,13 +23,12 @@ export default function Home() {
 
   // Calculate recommendation score for a product
   const calculateScore = (product, preferredCategories) => {
-    let score = product.rating.rate * 10; // Base score from rating (0-50)
+    let score = product.rating.rate * 10; // Base score
     
     // Boost score if in preferred category
     const categoryIndex = preferredCategories.indexOf(product.category);
     if (categoryIndex !== -1) {
-      // Higher boost for more frequently purchased categories
-      // Changed from 5 to 50 to ensure preferred categories outrank generic best sellers
+      // Massive efficiency boost (+50) to ensure preferences win
       score += (preferredCategories.length - categoryIndex) * 50;
     }
     
@@ -39,42 +38,48 @@ export default function Home() {
   // Get personalized recommendations based on order history
   const getPersonalizedRecommendations = async () => {
     try {
-      // Get user's orders from localStorage
-      const orders = JSON.parse(localStorage.getItem('mockOrders') || '[]');
+      // 1. Fetch User Orders (Backend)
+      const { items: myOrders } = await orders.list();
       
-      if (orders.length === 0) {
-        return null; // No order history, return null to show best sellers
+      if (!myOrders || myOrders.length === 0) {
+        return null; 
       }
       
-      // Extract categories and purchased product IDs
+      // 2. Fetch All Products (FakeStore) to resolve categories
+      const response = await products.list('');
+      const allProducts = response.items || [];
+      const productMap = new Map(allProducts.map(p => [p._id, p]));
+
+      // 3. Analyze Purchase History
       const purchasedCategories = {};
       const purchasedProductIds = new Set();
       
-      orders.forEach(order => {
+      myOrders.forEach(order => {
         order.items?.forEach(item => {
-          const category = item.product?.category;
+          // Robustly find product details
+          const productDetail = item.product?._id ? productMap.get(item.product._id) : null;
+          // Fallback: use title matching if ID mismatch (Double safety for Hybrid)
+          
+          const category = productDetail?.category || item.product?.category; // item.product.category might be undefined in backend snapshot
+          
           if (category) {
             purchasedCategories[category] = (purchasedCategories[category] || 0) + item.quantity;
           }
-          purchasedProductIds.add(item.product?._id);
+          if (item.product?._id) purchasedProductIds.add(item.product._id);
         });
       });
       
-      // Sort categories by purchase frequency
+      // 4. Determine Preferences
       const preferredCategories = Object.entries(purchasedCategories)
         .sort(([, a], [, b]) => b - a)
         .map(([cat]) => cat);
       
       console.log('Preferred categories:', preferredCategories);
       
-      // Fetch all products
-      const response = await products.list('');
-      const items = response.items || (Array.isArray(response) ? response : []);
-      
-      // Filter and score products
-      const recommendations = items
-        .filter(p => p.rating && p.rating.rate) // Has rating
-        .filter(p => !purchasedProductIds.has(p._id)) // Not already purchased
+      // 5. Score & Filter
+      const recommendations = allProducts
+        .filter(p => p.rating && p.rating.rate)
+        .filter(p => !purchasedProductIds.has(p._id))
         .map(p => ({
           ...p,
           score: calculateScore(p, preferredCategories)
@@ -84,13 +89,8 @@ export default function Home() {
       
       console.log('Personalized recommendations:', recommendations);
       
-      // If we got at least 1 recommendation, use it
-      if (recommendations.length > 0) {
-        return recommendations;
-      }
-      
-      // Otherwise fall back to best sellers
-      return null;
+      return recommendations.length > 0 ? recommendations : null;
+
     } catch (err) {
       console.error('Error getting personalized recommendations:', err);
       return null;
@@ -118,7 +118,10 @@ export default function Home() {
       
       try {
         // Check if we should show personalized recommendations
-        const shouldPersonalize = isSignedIn && hasOrderHistory();
+        let shouldPersonalize = false;
+        if (isSignedIn) {
+          shouldPersonalize = await hasOrderHistory();
+        }
         
         if (shouldPersonalize) {
           console.log('Attempting to show personalized recommendations...');
