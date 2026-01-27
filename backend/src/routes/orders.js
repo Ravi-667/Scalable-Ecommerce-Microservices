@@ -21,17 +21,33 @@ router.post('/', auth, async (req, res) => {
       if (existing) return res.status(200).json(existing);
     }
 
-    const cart = await Cart.findOne({ user: userId }).populate('items.product').lean();
+    // HYBRID MODE: Do not populate because products are not in MongoDB
+    // cart.items[i].product is the String ID
+    const cart = await Cart.findOne({ user: userId }).lean();
     if (!cart || !cart.items || cart.items.length === 0) return res.status(400).json({ error: 'Cart is empty' });
 
-    const items = cart.items.map((it) => ({ product: it.product._id, quantity: it.quantity, price: it.price }));
-    const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
+    console.log('Creating order from cart:', JSON.stringify(cart));
+
+    // Fix: Use it.product directly (it is the ID string in Hybrid mode)
+    // Also ensuring price is number, and copying snapshot data
+    const items = cart.items.map((it) => ({ 
+        product: it.product,  // Use the ID string
+        quantity: it.quantity, 
+        price: it.price,
+        title: it.title,
+        image: it.image
+    }));
+    
+    // Calculate total from cart prices
+    const total = items.reduce((s, it) => s + (Number(it.price) * Number(it.quantity)), 0);
 
     const order = new Order({ user: userId, items, total, currency: cart.currency, idempotencyKey });
     await order.save();
 
     // Clear cart after order
     await Cart.findOneAndUpdate({ user: userId }, { items: [] });
+    
+    console.log('Order created:', order._id);
 
     // Optionally forward order to external MockAPI (non-blocking)
     if (MOCKAPI_BASE) {
@@ -52,19 +68,35 @@ router.post('/', auth, async (req, res) => {
       })();
     }
 
-    await order.populate('items.product');
+    // Do not populate response either
     res.status(201).json(order);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Order Create Error:', err);
+    res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
 
 // List orders for user
 router.get('/', auth, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 }).populate('items.product').lean();
-    res.json({ items: orders });
+    // No populate in Hybrid mode
+    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 }).lean();
+    
+    // Transform to match frontend expectation (item.product.title)
+    const formattedOrders = orders.map(order => ({
+      ...order,
+      items: order.items.map(item => ({
+        ...item,
+        product: {
+           _id: item.product,
+           title: item.title || 'Product',
+           images: item.image ? [item.image] : [],
+           price: item.price
+        }
+      }))
+    }));
+
+    res.json({ items: formattedOrders });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -74,9 +106,25 @@ router.get('/', auth, async (req, res) => {
 // Get single order by id
 router.get('/:id', auth, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate('items.product').lean();
+    // No populate in Hybrid mode
+    let order = await Order.findById(req.params.id).lean();
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (String(order.user) !== String(req.user.id)) return res.status(403).json({ error: 'Forbidden' });
+    
+    // Transform
+    order = {
+      ...order,
+      items: order.items.map(item => ({
+        ...item,
+        product: {
+           _id: item.product,
+           title: item.title || 'Product',
+           images: item.image ? [item.image] : [],
+           price: item.price
+        }
+      }))
+    };
+
     res.json(order);
   } catch (err) {
     console.error(err);

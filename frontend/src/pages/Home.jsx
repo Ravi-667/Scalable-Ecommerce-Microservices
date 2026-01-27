@@ -29,7 +29,8 @@ export default function Home() {
     const categoryIndex = preferredCategories.indexOf(product.category);
     if (categoryIndex !== -1) {
       // Higher boost for more frequently purchased categories
-      score += (preferredCategories.length - categoryIndex) * 5;
+      // Changed from 5 to 50 to ensure preferred categories outrank generic best sellers
+      score += (preferredCategories.length - categoryIndex) * 50;
     }
     
     return score;

@@ -2,20 +2,29 @@
  * API Service - Frontend API Communication
  * 
  * This module handles all API calls.
- * Authentication is now handled by Clerk - tokens are managed externally.
+ * Authentication is now handled by Clerk.
  * 
- * MODE: MOCK SERVICES ENABLED
- * Using public APIs as data sources:
- * - Products: https://fakestoreapi.com
- * - Carts: localStorage (persistent)
- * - Users: Clerk Authentication
- * - Reviews: https://jsonplaceholder.typicode.com
+ * MODE: Controlled by VITE_USE_MOCKS environment variable
+ * - VITE_USE_MOCKS=false: Uses backend API with MongoDB
+ * - VITE_USE_MOCKS=true: Uses mock data (FakeStoreAPI + localStorage)
  */
+
+import { getClerkToken } from './clerkToken';
 
 const API_BASE = import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api';
 
-// MOCK MODE: Defaults to true in development, set VITE_USE_MOCKS=false to use real backend
-const USE_MOCKS = import.meta?.env?.VITE_USE_MOCKS !== 'false';
+// TEMPORARY FIX: Hardcode to false since .env.local is not being read by Vite
+// TODO: Fix environment variable loading issue
+const VITE_USE_MOCKS_RAW = import.meta?.env?.VITE_USE_MOCKS;
+const USE_MOCKS = false; // HARDCODED - Was: VITE_USE_MOCKS_RAW === 'true' || VITE_USE_MOCKS_RAW === undefined || VITE_USE_MOCKS_RAW === '';
+
+console.log('API Service initialized:', { 
+  USE_MOCKS, 
+  API_BASE,
+  VITE_USE_MOCKS_RAW,
+  envCheck: import.meta?.env,
+  NOTE: 'USE_MOCKS is HARDCODED to false'
+});
 
 // Mock service base URLs
 const SERVICES = {
@@ -26,8 +35,7 @@ const SERVICES = {
 };
 
 // ============ Clerk Token Integration ============
-// Note: Token management is now handled by Clerk
-// Use useAuth().getToken() in components that need the token
+// Token management is handled by Clerk - tokens are automatically included in API calls
 
 // Legacy compatibility functions - now Clerk manages auth state
 export function getToken() {
@@ -112,9 +120,18 @@ async function request(path, options = {}) {
   }
 }
 
-export function authFetch(path, { method = 'GET', body, token } = {}) {
+export async function authFetch(path, { method = 'GET', body, token } = {}) {
   const headers = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  
+  // Get Clerk token if not provided
+  if (!token) {
+    token = await getClerkToken();
+  }
+  
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
   return request(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
 }
 
@@ -122,82 +139,75 @@ export function authFetch(path, { method = 'GET', body, token } = {}) {
 
 export const products = {
   list: async (q) => {
-    if (USE_MOCKS) {
-      const res = await fetch(`${SERVICES.products}/products`);
-      const data = await res.json();
-      
-      let items = Array.isArray(data) ? data.map(p => ({ 
-        _id: String(p.id), 
-        title: p.title, 
-        description: p.description, 
-        price: p.price, 
-        currency: 'USD', 
-        images: p.image ? [p.image] : [],
-        category: p.category,
-        rating: p.rating,
-        inventory: Math.floor(Math.random() * 50) + 10
-      })) : [];
-      
-      // Filter by search query if provided
-      if (q) {
-        const query = q.toLowerCase();
-        items = items.filter(p => 
-          p.title.toLowerCase().includes(query) || 
-          p.description.toLowerCase().includes(query) ||
-          p.category?.toLowerCase().includes(query)
-        );
-      }
-      
-      return { items, count: items.length, page: 1, limit: 20 };
+    // HYBRID MODE: Always use FakeStoreAPI for products, even when using backend for other things
+    // This allows us to have a rich product catalog without seeding MongoDB
+    const res = await fetch(`${SERVICES.products}/products`);
+    const data = await res.json();
+    
+    let items = Array.isArray(data) ? data.map(p => ({ 
+      _id: String(p.id), 
+      title: p.title, 
+      description: p.description, 
+      price: p.price, 
+      currency: 'USD', 
+      images: p.image ? [p.image] : [],
+      category: p.category,
+      rating: p.rating,
+      inventory: Math.floor(Math.random() * 50) + 10
+    })) : [];
+    
+    // Filter by search query if provided
+    if (q) {
+      const query = q.toLowerCase();
+      items = items.filter(p => 
+        p.title.toLowerCase().includes(query) || 
+        p.description.toLowerCase().includes(query) ||
+        p.category?.toLowerCase().includes(query)
+      );
     }
-    return request(`/products${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+    
+    return { items, count: items.length, page: 1, limit: 20 };
   },
 
   get: async (id) => {
-    if (USE_MOCKS) {
-      const res = await fetch(`${SERVICES.products}/products/${id}`);
-      const p = await res.json();
-      return { 
-        _id: String(p.id), 
-        title: p.title, 
-        description: p.description, 
-        price: p.price, 
-        currency: 'USD', 
-        images: p.image ? [p.image] : [],
-        category: p.category,
-        rating: p.rating,
-        inventory: Math.floor(Math.random() * 50) + 10
-      };
-    }
-    return request(`/products/${id}`);
+    // HYBRID MODE: Always use FakeStoreAPI
+    const res = await fetch(`${SERVICES.products}/products/${id}`);
+    const p = await res.json();
+    return { 
+      _id: String(p.id), 
+      title: p.title, 
+      description: p.description, 
+      price: p.price, 
+      currency: 'USD', 
+      images: p.image ? [p.image] : [],
+      category: p.category,
+      rating: p.rating,
+      inventory: Math.floor(Math.random() * 50) + 10
+    };
   },
 
   getByCategory: async (category) => {
-    if (USE_MOCKS) {
-      const res = await fetch(`${SERVICES.products}/products/category/${category}`);
-      const data = await res.json();
-      const items = data.map(p => ({
-        _id: String(p.id),
-        title: p.title,
-        description: p.description,
-        price: p.price,
-        currency: 'USD',
-        images: p.image ? [p.image] : [],
-        category: p.category,
-        rating: p.rating,
-        inventory: Math.floor(Math.random() * 50) + 10
-      }));
-      return { items };
-    }
-    return request(`/products?category=${category}`);
+    // HYBRID MODE: Always use FakeStoreAPI
+    const res = await fetch(`${SERVICES.products}/products/category/${category}`);
+    const data = await res.json();
+    const items = data.map(p => ({
+      _id: String(p.id),
+      title: p.title,
+      description: p.description,
+      price: p.price,
+      currency: 'USD',
+      images: p.image ? [p.image] : [],
+      category: p.category,
+      rating: p.rating,
+      inventory: Math.floor(Math.random() * 50) + 10
+    }));
+    return { items, count: items.length, page: 1, limit: 20 };
   },
 
   getCategories: async () => {
-    if (USE_MOCKS) {
-      const res = await fetch(`${SERVICES.products}/products/categories`);
-      return res.json();
-    }
-    return request('/products/categories');
+    // HYBRID MODE: Always use FakeStoreAPI
+    const res = await fetch(`${SERVICES.products}/products/categories`);
+    return res.json();
   },
 
   create: (payload) => authFetch('/products', { method: 'POST', body: payload }),
@@ -265,7 +275,8 @@ export const cart = {
       saveLocalCart(cart);
       return cart;
     }
-    return authFetch('/cart', { method: 'POST', body: payload });
+    // Backend mode: send to API
+    return await authFetch('/cart', { method: 'POST', body: payload });
   },
 
   removeItem: async (itemId) => {

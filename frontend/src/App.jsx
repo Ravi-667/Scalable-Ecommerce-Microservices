@@ -12,6 +12,7 @@ import Profile from './pages/Profile'
 import Orders from './pages/Orders'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import ClerkTokenInitializer from './components/ClerkTokenInitializer'
 
 // Root redirect component - redirects based on auth status
 function RootRedirect() {
@@ -44,52 +45,54 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Root redirect based on auth status */}
-        <Route path="/" element={<RootRedirect />} />
-        
-        {/* Auth routes - no layout wrapper */}
-        <Route path="/sign-in/*" element={<SignInPage />} />
-        <Route path="/sign-up/*" element={<SignUpPage />} />
-        
-        {/* Public routes with layout */}
-        <Route path="/home" element={<Layout><Home /></Layout>} />
-        <Route path="/products" element={<Layout><Products /></Layout>} />
-        <Route path="/products/:id" element={<Layout><Product /></Layout>} />
-        
-        {/* Protected routes - require authentication */}
-        <Route path="/cart" element={
-          <Layout>
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          </Layout>
-        } />
-        <Route path="/checkout" element={
-          <Layout>
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          </Layout>
-        } />
-        <Route path="/profile" element={
-          <Layout>
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          </Layout>
-        } />
-        <Route path="/orders" element={
-          <Layout>
-            <ProtectedRoute>
-              <Orders />
-            </ProtectedRoute>
-          </Layout>
-        } />
-        
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <ClerkTokenInitializer>
+        <Routes>
+          {/* Root redirect based on auth status */}
+          <Route path="/" element={<RootRedirect />} />
+          
+          {/* Auth routes - no layout wrapper */}
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
+          
+          {/* Public routes with layout */}
+          <Route path="/home" element={<Layout><Home /></Layout>} />
+          <Route path="/products" element={<Layout><Products /></Layout>} />
+          <Route path="/products/:id" element={<Layout><Product /></Layout>} />
+          
+          {/* Protected routes - require authentication */}
+          <Route path="/cart" element={
+            <Layout>
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            </Layout>
+          } />
+          <Route path="/checkout" element={
+            <Layout>
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            </Layout>
+          } />
+          <Route path="/profile" element={
+            <Layout>
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            </Layout>
+          } />
+          <Route path="/orders" element={
+            <Layout>
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            </Layout>
+          } />
+          
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ClerkTokenInitializer>
     </BrowserRouter>
   )
 }
