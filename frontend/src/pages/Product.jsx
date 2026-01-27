@@ -30,7 +30,17 @@ export default function Product() {
     }
     setAdding(true);
     try {
-      await cart.add({ productId: p._id, quantity: 1 });
+      // Send product data to backend for MongoDB storage
+      await cart.add({ 
+        productId: p._id, 
+        quantity: 1,
+        product: {
+          title: p.title,
+          price: p.price,
+          images: p.images,
+          category: p.category
+        }
+      });
       // In a real app, we'd use a toast here
       alert('Added to cart successfully!');
     } catch (err) {
