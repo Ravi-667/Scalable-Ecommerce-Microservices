@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { orders, getToken, logout } from '../services/api';
+import { useAuth } from '@clerk/clerk-react';
+import { orders } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function Orders() {
+  const { isSignedIn, isLoaded } = useAuth();
   const [userOrders, setUserOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!getToken()) {
-      navigate('/login');
+    if (!isLoaded) return;
+    
+    if (!isSignedIn) {
+      navigate('/sign-in');
       return;
     }
 
@@ -20,9 +24,6 @@ export default function Orders() {
         const res = await orders.list();
         setUserOrders(res.items || []);
       } catch (err) {
-        if (err.status === 401) {
-          logout();
-        }
         console.error('Failed to fetch orders', err);
       } finally {
         setLoading(false);
@@ -30,7 +31,7 @@ export default function Orders() {
     };
 
     fetchOrders();
-  }, [navigate]);
+  }, [isLoaded, isSignedIn, navigate]);
 
   const getStatusColor = (status) => {
     const colors = {
