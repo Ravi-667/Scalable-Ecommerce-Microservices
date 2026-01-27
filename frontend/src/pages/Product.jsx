@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { products, cart, getToken } from '../services/api';
+import { useAuth } from '@clerk/clerk-react';
+import { products, cart } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function Product() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
   const [p, setP] = useState(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -22,8 +24,8 @@ export default function Product() {
   }, [id]);
 
   const add = async () => {
-    if (!getToken()) {
-      navigate('/login');
+    if (!isSignedIn) {
+      navigate('/sign-in');
       return;
     }
     setAdding(true);
