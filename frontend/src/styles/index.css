@@ -319,6 +319,21 @@ input:focus {
   appearance: none;
 }
 
+/* Hide default track for WebKit browsers (Chrome, Safari, Edge) */
+.range-slider-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 6px;
+}
+
+/* Hide default track for Firefox */
+.range-slider-input::-moz-range-track {
+  background: transparent;
+  height: 6px;
+  border: none;
+}
+
 .range-slider-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;

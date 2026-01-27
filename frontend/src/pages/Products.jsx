@@ -4,6 +4,15 @@ import { products } from '../services/api';
 import Skeleton, { ProductCardSkeleton, FilterSkeleton } from '../components/ui/Skeleton';
 import RangeSlider from '../components/ui/RangeSlider';
 
+// Category-specific price ranges
+const CATEGORY_PRICE_LIMITS = {
+  'all': 1000,
+  'electronics': 1000,
+  'jewelery': 700,
+  "men's clothing": 200,
+  "women's clothing": 200
+};
+
 export default function Products() {
   const [allItems, setAllItems] = useState([]); // Store all items for client-side filtering
   const [categories, setCategories] = useState([]);
@@ -43,6 +52,9 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts(selectedCategory);
+    // Reset price range to category limit when category changes
+    const maxPrice = CATEGORY_PRICE_LIMITS[selectedCategory] || 1000;
+    setPriceRange([0, maxPrice]);
   }, [selectedCategory]);
 
   // Filter items by search and price (client-side)
@@ -86,15 +98,14 @@ export default function Products() {
     return counts[category] || 0;
   };
 
-  // Calculate price range from products
+  // Get price range based on selected category
   const priceStats = useMemo(() => {
-    if (allItems.length === 0) return { min: 0, max: 1000 };
-    const prices = allItems.map(p => p.price || 0);
+    const maxPrice = CATEGORY_PRICE_LIMITS[selectedCategory] || 1000;
     return {
       min: 0,
-      max: Math.ceil(Math.max(...prices) / 10) * 10 // Round up to nearest 10
+      max: maxPrice
     };
-  }, [allItems]);
+  }, [selectedCategory]);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 'var(--spacing-xl)' }}>
